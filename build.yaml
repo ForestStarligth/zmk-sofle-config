@@ -48,5 +48,7 @@ jobs:
         ls -la .
         # 显示环境变量
         env
+        # 显示脚本内容
+        cat scripts/build.sh
         # 构建命令
         ./scripts/build.sh
