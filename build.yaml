@@ -4,22 +4,49 @@
 # to the `include` property. You can also use the `cmake-args` property to
 # pass flags to the build command and `artifact-name` to assign a name to
 # distinguish build outputs from each other:
-#
-# board: [ "nice_nano_v2" ]
-# shield: [ "corne_left", "corne_right" ]
-#include:
-#   - board: bdn9_rev2
-#   - board: nice_nano_v2
-#     shield: reviung41
- #  - board: nice_nano_v2
-#     shield: corne_left
- #   cmake-args: -DCONFIG_ZMK_USB_LOGGING=y
-#     artifact-name: corne_left_with_logging
-#
----
+
 include:
   - board: nice_nano_v2
     shield: sofle_left
   - board: nice_nano_v2
     shield: sofle_right
-    cmake-args: -DCONFIG_ZMK_USB_LOGGING=y
+
+name: Build and Test
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - board: nice_nano_v2
+            shield: sofle_left
+          - board: nice_nano_v2
+            shield: sofle_right
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+    - name: Setup environment
+      run: |
+        echo "Current directory: $(pwd)"
+        ls -la .
+        sudo apt-get update
+        sudo apt-get install -y cmake ninja-build
+        sudo apt-get install -y zephyr-sdk
+        echo "ZEPHYR_SDK_ROOT=/usr" >> $GITHUB_ENV
+        echo "PATH=${PATH}:${ZEPHYR_SDK_ROOT}/bin" >> $GITHUB_ENV
+    - name: Build
+      env:
+        BOARD: ${{ matrix.board }}
+        SHIELD: ${{ matrix.shield }}
+      run: |
+        # 显示当前目录内容
+        ls -la .
+        # 显示环境变量
+        env
+        # 构建命令
+        ./scripts/build.sh
